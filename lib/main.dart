@@ -33,7 +33,42 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.amber,
         centerTitle: true,
       ),
-      body: Container(), // próxima aula adicionar FutureBuilder
+      body: FutureBuilder<Map>(
+        future: getData(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return const Center(
+                child: Text(
+                  "Carregando dados",
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 25,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            default:
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text(
+                    "Erro ao carregar dados :(",
+                    style: TextStyle(
+                      color: Colors.amber,
+                      fontSize: 25,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              } else {
+                return Container(
+                  color: Colors.green,
+                );
+              }
+          }
+        },
+      ), // próxima aula adicionar FutureBuilder
     );
   }
 }
