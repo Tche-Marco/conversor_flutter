@@ -6,8 +6,19 @@ import 'dart:async';
 const request = "https://api.hgbrasil.com/finance?format=json&key=b17824fc";
 
 void main() async {
-  runApp(const MaterialApp(
-    home: Home(),
+  runApp(MaterialApp(
+    home: const Home(),
+    theme: ThemeData(
+      hintColor: Colors.amber,
+      primaryColor: Colors.white,
+      inputDecorationTheme: const InputDecorationTheme(
+        enabledBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+        focusedBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
+        hintStyle: TextStyle(color: Colors.amber),
+      ),
+    ),
   ));
 }
 
@@ -24,12 +35,55 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final realController = TextEditingController();
+  final dolarController = TextEditingController();
+  final euroController = TextEditingController();
+
+  late double dolar;
+  late double euro;
+
+  void _clearAll(){
+    realController.text = "";
+    dolarController.text = "";
+    euroController.text = "";
+  }
+
+  void _realChanged(String? text) {
+    if(text!.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double real = double.parse(text);
+    dolarController.text = (real/dolar).toStringAsFixed(2);
+    euroController.text = (real/euro).toStringAsFixed(2);
+  }
+
+  void _dolarChanged(String? text) {
+    if(text!.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double dolar = double.parse(text);
+    realController.text = (dolar * this.dolar).toStringAsFixed(2);
+    euroController.text = (dolar * this.dolar / euro).toStringAsFixed(2);
+  }
+
+  void _euroChanged(String? text) {
+    if(text!.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double euro = double.parse(text);
+    realController.text = (euro * this.euro).toStringAsFixed(2);
+    dolarController.text = (euro * this.euro / dolar).toStringAsFixed(2);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("\$Conversor\$"),
+        title: const Text("\$Conversor\$"),
         backgroundColor: Colors.amber,
         centerTitle: true,
       ),
@@ -62,13 +116,65 @@ class _HomeState extends State<Home> {
                   ),
                 );
               } else {
-                return Container(
-                  color: Colors.green,
+                dolar = snapshot.data!["results"]["currencies"]["USD"]["buy"];
+                euro = snapshot.data!["results"]["currencies"]["EUR"]["buy"];
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(
+                        Icons.monetization_on,
+                        size: 150,
+                        color: Colors.amber,
+                      ),
+                      buildTextField(
+                        "Reais",
+                        "R\$ ",
+                        realController,
+                        _realChanged,
+                      ),
+                      const Divider(),
+                      buildTextField(
+                        "Dólares",
+                        "\$ ",
+                        dolarController,
+                        _dolarChanged,
+                      ),
+                      const Divider(),
+                      buildTextField(
+                        "Euros",
+                        "€ ",
+                        euroController,
+                        _euroChanged,
+                      ),
+                    ],
+                  ),
                 );
               }
           }
         },
-      ), // próxima aula adicionar FutureBuilder
+      ),
     );
   }
+}
+
+Widget buildTextField(String label, String prefix,
+    TextEditingController controller, void Function(String?) onChanged) {
+  return TextField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.amber),
+      border: const OutlineInputBorder(),
+      prefixText: prefix,
+    ),
+    style: const TextStyle(
+      color: Colors.amber,
+      fontSize: 25,
+    ),
+    onChanged: onChanged,
+    keyboardType: TextInputType.number,
+  );
 }
